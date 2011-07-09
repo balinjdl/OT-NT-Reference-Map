@@ -1,25 +1,25 @@
-/*
-var start = new Point(150,100);
-var through = new Point(150,150);
-var to = new Point(400,150);
-var path = new Path.Arc(start,through,to);
-path.strokeColor="black";
-*/
+/* otnt3.js: Setup the OTNT reference graph
+/*  Copyright (c) 2011, John D. Lewis
+/**********************************************/
+
+// var startDate = new Date();
 
 var books = setupBooks();
-
-//console.log("books.length=" + books.length);
-
-var r = 250
+var fixr = {};
+fixr.x = view.center.x;
+fixr.y = view.center.y;
+// var fixr = 300; // fix the offset of the points to use the whole screen
+var r = 250; // radius
 var start, end;
+var cRad = 2; // radius of link end point circle
 
-var numBooks = 66;
-var buffer = 1.2; // degree buffer per each end of each book
-var bkSize = (360 - (buffer * numBooks)) / 66;
-var totalChapterCount = 1189;
+var numBooks = books.length;
+var buffer = 1.2; // buffer (in degrees) between each book
+var totalChapterCount = 1189; // TODO: Calculate?
 
+var linkColor = new RGBColor(.7,.7,.15);
 var degPerChapter = (360 - (buffer * numBooks))/totalChapterCount;
-console.log("degPerChapter = " + degPerChapter);
+// console.log("degPerChapter = " + degPerChapter);
 
 var lastStart = 0;
 var bkNum = 0;
@@ -29,19 +29,52 @@ for (var bkNum = 0; bkNum < books.length; bkNum++) {
 	chpNum += books[bkNum].numChapters;
 	var bkSize = degPerChapter * books[bkNum].numChapters;
 
-	//drawArcs(r, toRad(lastStart), toRad( lastStart + bkSize ));
-	drawArcs(r, toRad(lastStart), toRad( lastStart + bkSize ), getColor(books[bkNum]));
-	console.log("Processing book: " + books[bkNum].bkName + "; numChapters: " + bkSize + "; lastStart: " + lastStart);
+	drawBookArc(r, toRad(lastStart), toRad( lastStart + bkSize ), getColor(books[bkNum]));
+	// console.log("Updated books[" + bkNum + "].startA to " + books[bkNum].startA);
+	// console.log("Processing book: " + books[bkNum].bkName + "; numChapters: " + bkSize + "; lastStart: " + lastStart);
 	lastStart += bkSize + buffer;
 }
 
-console.log("chpNum = " + chpNum);
+var bk1 = 14;
+var bk2 = 27;
 
-var pRect = new Path.Rectangle(new Rectangle(new Point(0,0), new Size(600,600)));
-pRect.strokeColor = "blue";
+// console.log("random: " + (Math.random()*66));
+
+for (var linkCtr = 1; linkCtr < 100; linkCtr++) {
+	bk1 = Math.round(Math.random()*38);
+	bk2 = Math.round(39+Math.random()*26);
+	// console.log("bk1: " + bk1 + "; bk2: " + bk2);
+	
+	addLink(books[bk1].startA,books[bk2].startA, books[bk1].startDeg, books[bk2].startDeg);
+	addLink(books[bk1].startA,books[bk2].startA, books[bk1].startDeg, books[bk2].startDeg);
+	addLink(books[bk1].startA,books[bk2].startA, books[bk1].startDeg, books[bk2].startDeg);
+	addLink(books[bk1].startA,books[bk2].startA, books[bk1].startDeg, books[bk2].startDeg);
+	addLink(books[bk1].startA,books[bk2].startA, books[bk1].startDeg, books[bk2].startDeg);
+}
+
+// var pRect = new Path.Rectangle(new Rectangle(new Point(0,0), new Size(view.center.x*2,view.center.y*2)));
+// pRect.strokeColor = "blue";
+
+var pCenter = new Path.Circle(new Point(view.center.x, view.center.y), 1);
+pCenter.strokeColor = "lightgray";
+
+var pArcR13 = new Path.Circle(new Point(view.center.x, view.center.y), r/3);
+pArcR13.strokeColor = "lightgray";
+
+var pArcR23 = new Path.Circle(new Point(view.center.x, view.center.y), (2*r)/3);
+pArcR23.strokeColor = "lightgray";
+
+var pArcR78 = new Path.Circle(new Point(view.center.x, view.center.y), (7*r)/8);
+pArcR78.strokeColor = "lightgray";
+
+// console.log("center = " + view.center.x + ", " +  view.center.y);
 
 function toRad(deg) {
 	return(deg * (2 * Math.PI/360));
+}
+
+function toDeg(rad) {
+	return(rad * (360/(2 * Math.PI)));
 }
 
 function getColor(book) {
@@ -51,60 +84,119 @@ function getColor(book) {
 		return("blue");
 	}
 }
+
+function addLink(aPt, bPt, aDeg, bDeg) {
+	// Test a line between books
+	var start1 = new Point(aPt);
+	var startAngle = aDeg;
+	// console.log("start1 = " + start1.x + ", " + start1.y + "; angle: " + startAngle);
+
+	var to1 = new Point(bPt);
+	var toAngle = bDeg;
+	// console.log("to1 = " + to1.x + ", " + to1.y + "; angle: " + toAngle);
+
+	var through1 = getLinkThroughPoint(r, startAngle, toAngle);
+	var arc1 = new Path.Arc(start1, through1, to1);
+	arc1.strokeColor = linkColor;
+	arc1.dashArray = [10, 4];
+	arc1.strokeWidth = .1;
+	// console.log("through1 = " + through1.x + ", " + through1.y);
+
+	var pStart = new Path.Circle(start1, cRad);
+	pStart.fillColor = "yellow";
+
+	var pThrough = new Path.Circle(through1, cRad);
+	pThrough.fillColor = "orange";
+
+	var pTo = new Path.Circle(to1, cRad);
+	pTo.fillColor = "red";
+}
+
+function getLinkThroughPoint(r, a1, a2) {
+	var pt = new Point();
+	var d1 = toDeg(a1);
+	var d2 = toDeg(a2);
+	// var midDeg = a1 + Math.abs(a2-a1)/2;
+	var delta = (d1)+((d2-d1)/2);
+	// console.log("delta = " + delta + " == (" + toDeg(a2) + " - " + toDeg(a1) + ")/2");
+	
+	if (delta > 90) {
+		delta = (d2 + d1);
+		// console.log("now delta = " + delta);
+	}
+	var midDeg = toRad(delta);
+	// console.log("midDeg = " + toDeg(midDeg) + "; should be middle of " + toDeg(a1) + " and " + toDeg(a2));
+	
+	var midRadius = 1*r/3;
+	var midX = fixr.x + ( midRadius * (Math.cos(midDeg)));
+	var midY = fixr.y + ( midRadius * (Math.sin(midDeg)));
+	return(new Point(midX, midY));
+}
 		
-function drawArcs(r, a1, a2, color) {
+function drawBookArc(r, a1, a2, color) {
+	var arcThickness = 20;
+	
 	var startA, endB;
 	var startB, endB;
 	var pLine, pColor;
-	
+
 	pColor = color;
-	
-	drawArc(r, a1, a2);
-	startA = start; endA = end;
-
-	drawArc(r+20, a1, a2);
-	startB = start; endB = end;
-
-	pLine = new Path.Line(startA, startB);
-	pLine.strokeColor = pColor;
-
-	pLine = new Path.Line(endA, endB);
-	pLine.strokeColor = pColor;
-	
-}
-
-function drawArc(r, a1, a2) {
-
-	var fixr = 300;
 
 	var a1b = (Math.min(a1,a2) + (Math.abs(a1-a2)/2));
+	
+	var cos1 = Math.cos(a1);
+	var cos1b = Math.cos(a1b);
+	var cos2 = Math.cos(a2);
 
-	var ax = fixr + ( r * (Math.cos(a1)));
-	var ay = fixr + ( r * (Math.sin(a1)));
-	var bx = fixr + ( r * (Math.cos(a1b)));
-	var by = fixr + ( r * (Math.sin(a1b)));
-	var cx = fixr + ( r * (Math.cos(a2)));
-	var cy = fixr + ( r * (Math.sin(a2)));
-
-	//alert(a1 + " -> " + a1b + " -> " + a2 + "\n\n" + ax + "," + ay + ";\n" + bx + "," + by + ";\n" + cx + "," + cy);
+	var sin1 = Math.sin(a1);
+	var sin1b = Math.sin(a1b);
+	var sin2 = Math.sin(a2);
+	
+	// Set up Arc1
+	var ax = fixr.x + ( r * (cos1));
+	var ay = fixr.y + ( r * (sin1));
+	var bx = fixr.x + ( r * (cos1b));
+	var by = fixr.y + ( r * (sin1b));
+	var cx = fixr.x + ( r * (cos2));
+	var cy = fixr.y + ( r * (sin2));
 
 	var begin = new Point(ax,ay);
 	var through = new Point(bx,by);
 	var to = new Point(cx,cy);
-	var path = new Path.Arc(begin,through,to);
-	path.strokeColor="green";
+	var pArc1 = new Path.Arc(begin,through,to);
+	startA = begin; endA = to;
 
-	// var p1 = new Path.Line(new Point(fixr,fixr), new Point(ax, ay));
-	// p1.strokeColor = "orange";
+	// Set up Arc2
+	var ax2 = fixr.x + ( (r+arcThickness) * (Math.cos(a1)));
+	var ay2 = fixr.y + ( (r+arcThickness) * (Math.sin(a1)));
+	var bx2 = fixr.x + ( (r+arcThickness) * (Math.cos(a1b)));
+	var by2 = fixr.y + ( (r+arcThickness) * (Math.sin(a1b)));
+	var cx2 = fixr.x + ( (r+arcThickness) * (Math.cos(a2)));
+	var cy2 = fixr.y + ( (r+arcThickness) * (Math.sin(a2)));
 
-	// var p2 = new Path.Line(new Point(fixr,fixr), new Point(bx, by));
-	// p2.strokeColor = "red";
+	var begin2 = new Point(ax2,ay2);
+	var through2 = new Point(bx2,by2);
+	var to2 = new Point(cx2,cy2);
+	var pArc2 = new Path.Arc(begin2,through2,to2);
+	startB = begin2; endB = to2;
 
-	// var p3 = new Path.Line(new Point(fixr,fixr), new Point(cx, cy));
-	// p3.strokeColor = "blue";
-
-	start = begin;
-	end   = to;
+	// Set up Line1
+	pLine1 = new Path.Line(startA, startB);
+	// Set up Line2
+	pLine2 = new Path.Line(endA, endB);
+	
+	pArc1.join(pLine1);
+	pArc2.join(pLine2);
+	pArc1.join(pArc2);
+	pArc1.strokeColor = color;
+	pArc1.fillColor = color;
+	
+	books[bkNum].startA = startA;
+	books[bkNum].endA = endA;
+	books[bkNum].startB = startB;
+	books[bkNum].endB = endB;
+	books[bkNum].startDeg = a1;
+	books[bkNum].endDeg = a2;
 }
 
 function setupBooks() {
@@ -178,3 +270,6 @@ function setupBooks() {
 	books.push({ "bkAbbrev": "NTRe", "bkName":"Re", "numChapters":22 });
 	return(books);
 }
+
+// var finishedDate = new Date();
+// console.log("Finished in " + (finishedDate.getTime()-startDate.getTime())/1000 + " seconds");
