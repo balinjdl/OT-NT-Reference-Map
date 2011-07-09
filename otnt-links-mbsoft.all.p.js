@@ -1,3 +1,4 @@
+// Data source: http://mb-soft.com/believe/txh/ntot.htm
 possiblelinks.push({ "linkID": "OTNT519", "bkSource": "NT2Th", "chpSource": 2, "bkTarget": "OTIsa", "chpTarget": 11 });
 possiblelinks.push({ "linkID": "OTNT520", "bkSource": "NT1Ti", "chpSource": 2, "bkTarget": "OTGen", "chpTarget": 1 });
 possiblelinks.push({ "linkID": "OTNT527", "bkSource": "NT1Ti", "chpSource": 6, "bkTarget": "OTPsa", "chpTarget": 49 });
