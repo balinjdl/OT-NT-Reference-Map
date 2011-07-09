@@ -1,8 +1,13 @@
-/* otnt3.js: Setup the OTNT reference graph
+/**********************************************
+/* otnt.js: Generate the OTNT reference graph
+/*
 /*  Copyright (c) 2011, John D. Lewis
+/*  
+/*  See README for setup and usage information
+/*  See LICENSE for full license information
+/*  
+/*  Link data source: http://mb-soft.com/believe/txh/ntot.htm -- used with permission
 /**********************************************/
-
-// var startDate = new Date();
 
 var books = setupBooks();
 var links = setupLinks();
