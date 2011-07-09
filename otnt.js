@@ -6,25 +6,36 @@ var path = new Path.Arc(start,through,to);
 path.strokeColor="black";
 */
 
-var books = [];
-setupBooks();
+var books = setupBooks();
+
+//console.log("books.length=" + books.length);
 
 var r = 250
 var start, end;
 
 var numBooks = 66;
-var buffer = 1; // degree buffer per each end of each book
+var buffer = 1.2; // degree buffer per each end of each book
 var bkSize = (360 - (buffer * numBooks)) / 66;
+var totalChapterCount = 1189;
+
+var degPerChapter = (360 - (buffer * numBooks))/totalChapterCount;
+console.log("degPerChapter = " + degPerChapter);
 
 var lastStart = 0;
 var bkNum = 0;
+var chpNum = 0;
 
-for (var book in books) {
-	bkNum++;
-	drawArcs(r, toRad(lastStart), toRad( lastStart + bkSize ));
-	window.defaultStatus = "Processing book: " + book.bkName;
+for (var bkNum = 0; bkNum < books.length; bkNum++) {
+	chpNum += books[bkNum].numChapters;
+	var bkSize = degPerChapter * books[bkNum].numChapters;
+
+	//drawArcs(r, toRad(lastStart), toRad( lastStart + bkSize ));
+	drawArcs(r, toRad(lastStart), toRad( lastStart + bkSize ), getColor(books[bkNum]));
+	console.log("Processing book: " + books[bkNum].bkName + "; numChapters: " + bkSize + "; lastStart: " + lastStart);
 	lastStart += bkSize + buffer;
 }
+
+console.log("chpNum = " + chpNum);
 
 var pRect = new Path.Rectangle(new Rectangle(new Point(0,0), new Size(600,600)));
 pRect.strokeColor = "blue";
@@ -33,12 +44,20 @@ function toRad(deg) {
 	return(deg * (2 * Math.PI/360));
 }
 
-function drawArcs(r, a1, a2) {
+function getColor(book) {
+	if(book.bkAbbrev.substring(0,2)=="OT") {
+		return("green");
+	} else {
+		return("blue");
+	}
+}
+		
+function drawArcs(r, a1, a2, color) {
 	var startA, endB;
 	var startB, endB;
 	var pLine, pColor;
 	
-	pColor = "green";
+	pColor = color;
 	
 	drawArc(r, a1, a2);
 	startA = start; endA = end;
@@ -89,6 +108,7 @@ function drawArc(r, a1, a2) {
 }
 
 function setupBooks() {
+	var books = [];
 	books.length=0;
 	books.push({ "bkAbbrev": "OTGen", "bkName":"Gen", "numChapters":50 });
 	books.push({ "bkAbbrev": "OTExo", "bkName":"Exo", "numChapters":40 });
@@ -156,4 +176,5 @@ function setupBooks() {
 	books.push({ "bkAbbrev": "NT3Jo", "bkName":"3Jo", "numChapters":1 });
 	books.push({ "bkAbbrev": "NTJude", "bkName":"Jude", "numChapters":1 });
 	books.push({ "bkAbbrev": "NTRe", "bkName":"Re", "numChapters":22 });
+	return(books);
 }
