@@ -7,6 +7,11 @@
 var books = setupBooks();
 var links = setupLinks();
 
+var layerQ = new Layer();
+var layerA = new Layer();
+var layerP = new Layer();
+var layerBooks = new Layer();
+
 var booksByName = [];
 var fixr = {};
 fixr.x = view.center.x;
@@ -17,8 +22,8 @@ var start, end;
 var cRad = 2; // radius of link end point circle
 
 var showQuotations = true;
-var showAllusions = false;
-var showPossibleAllusions = false;
+var showAllusions = true;
+var showPossibleAllusions = true;
 
 var drawChapterMarkers = true; // Draw tick marks for every 10 chapters
 
@@ -40,6 +45,8 @@ var lastStart = 0;
 var bkNum = 0;
 var chpNum = 0;
 
+layerBooks.visible = false;
+
 for (var bkNum = 0; bkNum < books.length; bkNum++) {
 	chpNum += books[bkNum].numChapters;
 	booksByName[books[bkNum].bkAbbrev] = bkNum;
@@ -53,9 +60,15 @@ for (var bkNum = 0; bkNum < books.length; bkNum++) {
 	lastStart += bkSize + buffer;
 }
 
+layerBooks.visible = true;
+
 var bk1, bk2;
 
 // Print links
+layerQ.visible = false;
+layerA.visible = false;
+layerP.visible = false;
+
 for (var linkCtr = 0; linkCtr < links.length; linkCtr++) {
 	bk1Num = booksByName[links[linkCtr].bkSource];
 	bk1 = books[bk1Num];
@@ -87,6 +100,10 @@ for (var linkCtr = 0; linkCtr < links.length; linkCtr++) {
 	addLink(newAngleA, newAngleB, links[linkCtr].bkSource, links[linkCtr].type);
 	// console.log("bk1.start: " + bk1.startA + "; bk2.startA: " + bk2.startA + "; bk1.startDeg: " + toDeg(bk1.startDeg) + "; bk2.startDeg: " + toDeg(bk2.startDeg));
 }
+
+layerQ.visible = true;
+layerA.visible = true;
+layerP.visible = true;
 
 // addBorder();
 // addBands();
@@ -167,12 +184,15 @@ function addLink(aDeg, bDeg, bookName, linkType) {
 		arc1.strokeColor = getLinkColor(bookName);
 		if (linkType == "q") {
 			arc1.strokeWidth = 1;
+			layerQ.addChild(arc1);
 		} else if (linkType == "a") {
 			arc1.dashArray = [5, 2];
 			arc1.strokeWidth = .5;
+			layerA.addChild(arc1);
 		} else if (linkType == "p") {
 			arc1.dashArray = [10, 4];
 			arc1.strokeWidth = .25;
+			layerP.addChild(arc1);
 		} else {
 			arc1.dashArray = [15, 5];
 			arc1.strokeWidth = .1;
@@ -268,6 +288,8 @@ function drawBookArc(r, a1, a2, color) {
 	pArc1.strokeColor = "black";
 	pArc1.fillColor = color;
 	
+	layerBooks.addChild(pArc1);
+	
 	// Add the book label
 	var innerBuffer = 10;
 	var startingPos = getPointOnArc(r+arcThickness+innerBuffer,a1b);
@@ -287,6 +309,7 @@ function drawBookArc(r, a1, a2, color) {
 		text.position = getPointOnArc(r+arcThickness+innerBuffer+textWidth, a1b);
 		text.paragraphStyle.justification = "right";
 	}
+	layerBooks.addChild(text);
 	
 	if (drawChapterMarkers) {
 		// Draw the first chapter marker
@@ -295,6 +318,7 @@ function drawBookArc(r, a1, a2, color) {
 		// console.log(books[bkNum].bkName + ": nextChpDeg = " + nextChpDeg + "; a2Deg = " + a2Deg + "; chpNum = " + chpNum + "; startPoint-endPoint = " + startPoint + "-" + endPoint);
 		var chpLine = new Path.Line(startPoint, endPoint);
 		chpLine.strokeColor = "black";
+		layerBooks.addChild(chpLine);
 		
 		// Draw chapter markers every 10 chapters
 		if (books[bkNum].numChapters > 10) {
@@ -306,6 +330,7 @@ function drawBookArc(r, a1, a2, color) {
 				// console.log(books[bkNum].bkName + ": nextChpDeg = " + nextChpDeg + "; a2Deg = " + a2Deg + "; chpNum = " + chpNum + "; startPoint-endPoint = " + startPoint + "-" + endPoint);
 				var chpLine = new Path.Line(startPoint, endPoint);
 				chpLine.strokeColor = "black";
+				layerBooks.addChild(chpLine);
 				nextChpRad = nextChpRad + toRad(10 * degPerChapter);
 				chpNum += 10;
 			}
@@ -1349,9 +1374,84 @@ function setupLinks() {
 var mousePoint = new Path.Circle([0,0], 5);
 mousePoint.fillColor = "orange";
 
-function onMouseMove(event) {
-	mousePoint.position = event.point;
+var startX = 0; var startY = 0;
+var deltaX = 0; var deltaY = 0;
+var newX = 0; var newY = 0;
+
+var dragging = false;
+
+function onMouseDrag(event) { 
+    if(event.modifiers.shift) {
+        // If the shift key is down, change the point of
+        // the last segment to the position of the mouse:
+        path.lastSegment.point = event.point;
+    } else {
+		dragging = true;
+		// console.log("now dragging...");
+		// deltaX = (startX - event.point.x) * view.zoom;
+		// deltaY = (startY - event.point.y) * view.zoom;
+		// console.log("delta = " + delta);
+	}
 }
 
-view.zoom = 5;
-view.center = 100,100;
+function onMouseDown(event) {
+	startX = event.downPoint.x;
+	startY = event.downPoint.y;
+	// console.log("mouseDown: at " + event.downPoint.x + ", " + event.downPoint.y);
+}
+
+function onMouseUp(event) {
+	// console.log("mouseUp: at " + event.point.x + ", " + event.point.y);
+	dragging = false;
+	// console.log("not dragging anymore...");
+	deltaX = (event.downPoint.x - event.point.x) * view.zoom;
+	deltaY = (event.downPoint.y - event.point.y) * view.zoom;
+	// var newX = view.center.x + deltaX;
+	// var newY = view.center.y + deltaY;
+	// view.center = new Point(newX, newY);
+	view.scrollBy(new Point(deltaX, deltaY));
+	// console.log("deltaX = " + (-1 * deltaX) + "; deltaY = " + deltaY + "; " + view.center.x + "; new X/Y: " + newX + "," + newY);
+}
+
+function onMouseMove(event) {
+	if (dragging) {
+		view.scrollBy(new Point(deltaX, deltaY));
+	} else {
+		mousePoint.position = event.point;
+	}
+}
+
+function onKeyDown(event) {
+	console.log("keydown event: key = " + event.key);
+	
+	if (event.key == '+') {
+		view.zoom = view.zoom + 1;
+	} else if (event.key == '-') {
+		view.zoom = (view.zoom > 1 ? view.zoom - 1 : 1);
+	} else if (event.key == 'q') {
+		layerQ.visible = !layerQ.visible;
+		console.log("toggling layerQ.visible: " + layerQ.visible);
+	} else if (event.key == 'a') {
+		layerA.visible = !layerA.visible;
+		console.log("toggling layerA.visible: " + layerA.visible);
+	} else if (event.key == 'p') {
+		layerP.visible = !layerP.visible;
+		console.log("toggling layerP.visible: " + layerP.visible);
+	} else if (event.key == 'b') {
+		layerBooks.visible = !layerBooks.visible;
+		console.log("toggling layerBooks.visible: " + layerBooks.visible);
+	} else if (event.key == 'c') {
+		var newX = fixr.x;
+		var newY = fixr.y;
+		view.center = new Point(newX, newY);
+		console.log("recentering view: " + newX + " x " + newY + " == " + view.canvas.width/2 + " x " + view.canvas.height/2);
+	} else if (event.key == 'r') {
+		var newX = 0; //view.canvas.width/2;
+		var newY = 0; //view.canvas.height/2;
+		view.center = new Point(0, 0); //newX, newY);
+		view.zoom = 1;
+		console.log("resetting view: " + view.center.x + " x " + view.center.y);
+	}
+	
+	return false;
+}
