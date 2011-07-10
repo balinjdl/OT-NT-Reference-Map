@@ -2,7 +2,7 @@ README for OT/NT Reference Map
 
 Software to generate a graphic map of all references (quotations, allusions, and possible allusions) of Old Testament passages in the New Testament.
 
-To function, you must download paper.js (http://paperjs.org/) to ./js/ and open otnt.html to view the graphic.
+To function, you must download paper.js (http://paperjs.org/) to ./js/ and open otnt.html to view the graphic. [Note: The latest Paper.js is available on GitHub at http://github.com/paperjs/paper.js]
 
 Keyboard support:
 	"+" = zoom in
