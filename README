@@ -11,6 +11,7 @@ Keyboard support:
 	"a" = toggle allusion link visibility
 	"p" = toggle possible allusion link visibility
 	"b" = toggle book ring/arc visibility
+	"n" = toggle inner bands visibility
 	"r" = reset view [broken]
 	"c" = recenter [broken]
 

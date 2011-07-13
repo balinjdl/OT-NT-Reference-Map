@@ -20,6 +20,7 @@ var layerQ = new Layer();
 var layerA = new Layer();
 var layerP = new Layer();
 var layerBooks = new Layer();
+var layerBands = new Layer();
 
 var booksByName = [];
 var fixr = {};
@@ -128,25 +129,36 @@ layerA.visible = true;
 layerP.visible = true;
 
 // addBorder(); // Show a rectangular border around the canvas
-// addBands();  // Show inner bands at various distances from the circle center
+addBands();  // Show inner bands at various distances from the circle center
 
 function addBorder() {
 	var pRect = new Path.Rectangle(new Rectangle(new Point(0,0), new Size(view.center.x*2,view.center.y*2)));
 	pRect.strokeColor = "blue";
 }
 
-function addBands() {
-	var pCenter = new Path.Circle(new Point(view.center.x, view.center.y), 1);
+// Draw a gray concentric circle inside the graph
+function drawBand(r) {
+	var pCenter = new Path.Circle(new Point(view.center.x, view.center.y), r);
 	pCenter.strokeColor = "lightgray";
+	layerBands.addChild(pCenter);
+}
 
-	var pArcR13 = new Path.Circle(new Point(view.center.x, view.center.y), r/3);
-	pArcR13.strokeColor = "lightgray";
-
-	var pArcR23 = new Path.Circle(new Point(view.center.x, view.center.y), (2*r)/3);
-	pArcR23.strokeColor = "lightgray";
-
-	var pArcR78 = new Path.Circle(new Point(view.center.x, view.center.y), (7*r)/8);
-	pArcR78.strokeColor = "lightgray";
+// Draw gray concentric circles inside the graph
+function addBands() {
+	layerBands.visible = false;
+	drawBand((19*r)/20);
+	drawBand((9*r)/10);
+	drawBand((17*r)/20);
+	drawBand((8*r)/10);
+	drawBand((7*r)/10);
+	drawBand((6*r)/10);
+	drawBand((5*r)/10);
+	drawBand((4*r)/10);
+	drawBand((3*r)/10);
+	drawBand((2*r)/10);
+	drawBand((1*r)/10);
+	drawBand(r/50);
+	layerBands.visible = true;
 }
 
 function toRad(deg) {
@@ -157,6 +169,7 @@ function toDeg(rad) {
 	return(rad * (360/(2 * Math.PI)));
 }
 
+// Return the appropriate color for the book; currently either green (OT) or blue (NT)
 function getBookArcColor(book) {
 	if(book.bkAbbrev.substring(0,2)=="OT") {
 		return("green");
@@ -201,6 +214,8 @@ function addLink(aDeg, bDeg, bookName, linkType) {
 
 		var arc1 = new Path.Arc(getPointOnArc(r-innerLinkArcBuffer, startAngle), through1, getPointOnArc(r-innerLinkArcBuffer,bDeg));
 		arc1.strokeColor = getLinkColor(bookName);
+		
+		// Set up the stroke type and width
 		if (linkType == "q") {
 			arc1.strokeWidth = 1;
 			layerQ.addChild(arc1);
@@ -216,16 +231,6 @@ function addLink(aDeg, bDeg, bookName, linkType) {
 			arc1.dashArray = [15, 5];
 			arc1.strokeWidth = .1;
 		}
-		// console.log("through1 = " + through1.x + ", " + through1.y);
-
-		// var pStart = new Path.Circle(getPointOnArc(r,aDeg), cRad);
-		// pStart.fillColor = "yellow";
-
-		// var pThrough = new Path.Circle(through1, cRad);
-		// pThrough.fillColor = "orange";
-
-		// var pTo = new Path.Circle(getPointOnArc(r,bDeg), cRad);
-		// pTo.fillColor = "red";
 	}
 }
 
@@ -253,22 +258,25 @@ function getLinkThroughPoint(r, a1, a2) {
 	
 	var midRadius;
 
-	if (minAngleAdjustment < 5) {
+	/* Calculate how far from the center the midpoint should go.
+     *   As the angle increases, the point gets closer to the center.
+	 */
+	if (minAngleAdjustment < 15) {
 		midRadius = (19*r)/20;
 		// simpleDebugLog("midRadius set to 19r/20");
-	} else if (minAngleAdjustment < 15) {
+	} else if (minAngleAdjustment < 30) {
 		midRadius = (9*r)/10;
 		// simpleDebugLog("midRadius set to 9r/10");
-	} else if (minAngleAdjustment < 30) {
+	} else if (minAngleAdjustment < 50) {
 		midRadius = (17*r)/20;
 		// simpleDebugLog("midRadius set to 17r/20; r = " + r);
-	} else if (minAngleAdjustment < 45) {
+	} else if (minAngleAdjustment < 60) {
 		midRadius = (8*r)/10;
 		// simpleDebugLog("midRadius set to 8r/10");
-	} else if (minAngleAdjustment < 60) {
+	} else if (minAngleAdjustment < 80) {
 		midRadius = (7*r)/10;
 		// simpleDebugLog("midRadius set to 7r/10");
-	} else if (minAngleAdjustment < 90) {
+	} else if (minAngleAdjustment < 100) {
 		midRadius = (6*r)/10;
 		// simpleDebugLog("midRadius set to 6r/10");
 	} else if (minAngleAdjustment < 120) {
@@ -277,39 +285,52 @@ function getLinkThroughPoint(r, a1, a2) {
 	} else if (minAngleAdjustment < 135) {
 		midRadius = (4*r)/10;
 		// simpleDebugLog("midRadius set to 4r/10");
-	} else if (minAngleAdjustment < 160) {
+	} else if (minAngleAdjustment < 140) {
 		midRadius = (3*r)/10;
 		// simpleDebugLog("midRadius set to 3r/10");
-	} else if (minAngleAdjustment < 180) {
+	} else if (minAngleAdjustment < 150) {
+		midRadius = (2*r)/10;
+		// simpleDebugLog("midRadius set to 2r/10");
+	} else if (minAngleAdjustment < 160) {
 		midRadius = (1*r)/10;
 		// simpleDebugLog("midRadius set to 1r/10");
 	} else {
-		midRadius = 0;
-		// simpleDebugLog("midRadius set to 0");
+		midRadius = r/50;
+		// simpleDebugLog("midRadius set to r/50");
 	}
 	// simpleDebugLog("midRadius: " + midRadius + "; midDeg: " + midDeg);
 	
 	return(getPointOnArc(midRadius, midDeg));
 }
 
+/* Figure out the minimal middle angle between two.
+ *   Calculates the average (normalizes for avg > 360)
+ *     then determines if the midAngle (initially set to avg)
+ *     should be adjusted 180 up (if both deltaA and deltaB > 90).
+ */
 function calcMidAngle(angle1, angle2) { // Find the angle between angle1 and angle2
 	var maxAngle = Math.max(angle1, angle2);
 	var minAngle = Math.min(angle1, angle2);
-	var delta = (maxAngle - minAngle)/2;
-	var midAngle = minAngle + delta;
-	// simpleDebugLog("midAngle (initial): " + midAngle);
+	var avg = (maxAngle + minAngle)/2;
+	// simpleDebugLog("maxAngle: " + maxAngle + "; avg: " + avg + "; minAngle: " + minAngle);
 	
-	var to360Max = 360 - maxAngle; // Move the largest angle to 0
-	var minAngleAdjustment = minAngle + to360Max;
-	if (minAngleAdjustment < 180) {
-		if (midAngle > 180) {
-			midAngle = midAngle - 180;
-		} else {
-			midAngle = 180 - midAngle;
-		}
-		// simpleDebugLog("midAngle(adjusted): " + midAngle);
-	}
-	// simpleDebugLog("calcMidAngle: maxAngle: " + maxAngle + "; midAngle: " + midAngle + "; minAngle: " + minAngle + "; delta: " + delta + "; to360Max: " + to360Max + "; minAngleAdjustment: " + minAngleAdjustment);
+	// Clean up the avg value
+	if (avg > 360) {
+		avg = avg - 360; 
+		// simpleDebugLog("  avg (adj): " + avg);
+	};
+
+	var deltaA = maxAngle - avg;
+	var deltaB = minAngle + avg;
+	var midAngle = avg; // default midAngle value
+	// simpleDebugLog("deltaA: " + deltaA + "; deltaB: " + deltaB + "; midAngle: " + midAngle);
+	
+	// Adjust the midAngle value if both deltaA and deltaB are > 90
+	if ((deltaA > 90) & (deltaB > 90)) {
+		midAngle = avg + 180;
+		// simpleDebugLog("midAngle (adj): " + midAngle);
+	};
+	
 	return(midAngle);
 }
 
@@ -1447,6 +1468,7 @@ function setupShortLinkList() {
 	links.length = 0;
 	
 	links.push({ "linkID": "OTNT520", "bkSource": "NT1Ti", "chpSource": 2, "bkTarget": "OTGen", "chpTarget": 1, "type": "p" });
+	links.push({ "linkID": "OTNT1", "bkSource": "NTMt", "chpSource": 1, "bkTarget": "OTIsa", "chpTarget": 7, "type": "q" });
 
 	// Possible (3 test links)
 	// links.push({ "linkID": "OTNT549", "bkSource": "NTHeb", "chpSource": 5, "bkTarget": "OT1Ch", "chpTarget": 23, "type": "p" });
@@ -1538,9 +1560,6 @@ function onMouseUp(event) {
 	// console.log("not dragging anymore...");
 	deltaX = (event.downPoint.x - event.point.x) * view.zoom;
 	deltaY = (event.downPoint.y - event.point.y) * view.zoom;
-	// var newX = view.center.x + deltaX;
-	// var newY = view.center.y + deltaY;
-	// view.center = new Point(newX, newY);
 	view.scrollBy(new Point(deltaX, deltaY));
 	// console.log("deltaX = " + (-1 * deltaX) + "; deltaY = " + deltaY + "; " + view.center.x + "; new X/Y: " + newX + "," + newY);
 }
@@ -1562,27 +1581,30 @@ function onKeyDown(event) {
 		view.zoom = (view.zoom > 1 ? view.zoom - 1 : 1);
 	} else if (event.key == 'q') {
 		layerQ.visible = !layerQ.visible;
-		console.log("toggling layerQ.visible: " + layerQ.visible);
+		// console.log("toggling layerQ.visible: " + layerQ.visible);
 	} else if (event.key == 'a') {
 		layerA.visible = !layerA.visible;
-		console.log("toggling layerA.visible: " + layerA.visible);
+		// console.log("toggling layerA.visible: " + layerA.visible);
 	} else if (event.key == 'p') {
 		layerP.visible = !layerP.visible;
-		console.log("toggling layerP.visible: " + layerP.visible);
+		// console.log("toggling layerP.visible: " + layerP.visible);
 	} else if (event.key == 'b') {
 		layerBooks.visible = !layerBooks.visible;
-		console.log("toggling layerBooks.visible: " + layerBooks.visible);
+		// console.log("toggling layerBooks.visible: " + layerBooks.visible);
+	} else if (event.key == 'n') {
+		layerBands.visible = !layerBands.visible;
+		// console.log("toggling layerBands.visible: " + layerBands.visible);
 	} else if (event.key == 'c') {
 		var newX = fixr.x;
 		var newY = fixr.y;
 		view.center = new Point(newX, newY);
-		console.log("recentering view: " + newX + " x " + newY + " == " + view.canvas.width/2 + " x " + view.canvas.height/2);
+		// console.log("recentering view: " + newX + " x " + newY + " == " + view.canvas.width/2 + " x " + view.canvas.height/2);
 	} else if (event.key == 'r') {
 		var newX = 0; //view.canvas.width/2;
 		var newY = 0; //view.canvas.height/2;
 		view.center = new Point(0, 0); //newX, newY);
 		view.zoom = 1;
-		console.log("resetting view: " + view.center.x + " x " + view.center.y);
+		// console.log("resetting view: " + view.center.x + " x " + view.center.y);
 	}
 	
 	return false;
